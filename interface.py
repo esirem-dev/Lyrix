@@ -91,8 +91,12 @@ class Backend(QObject):
         if(not "progress_ms" in self.currentlyPlaying):
             return
         
-        progress_ms = int(self.currentlyPlaying["progress_ms"]) - 700
-        timing = int(progress_ms + (time.time()*1000 - self.lastTimeRefresh*1000))
+        if(self.currentlyPlaying["is_playing"]):
+            progress_ms = int(self.currentlyPlaying["progress_ms"]) - 700
+            timing = int(progress_ms + (time.time()*1000 - self.lastTimeRefresh*1000))
+        else:
+            progress_ms = int(self.currentlyPlaying["progress_ms"])
+            timing = int(progress_ms)
         
         i = 0 
         for l in self.lyrics["lyrics"]["lines"]:
