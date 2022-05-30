@@ -74,6 +74,11 @@ class Backend(QObject):
             
     def threadCurrentlyPlaying(self):
         currentlyPlaying = self.lyrix.getCurrentlyPlaying()
+        
+        if(currentlyPlaying == ""):
+            print("Spotify non lancé")
+            return
+        
         idSong = currentlyPlaying["item"]["id"]
         
         if(idSong != self.currentlyPlaying["item"]["id"]):
@@ -101,7 +106,7 @@ class Backend(QObject):
 
 backend = Backend()
 
-lyrix = Lyrix(cookies=read_file("cookies.txt"))
+lyrix = Lyrix(cookies=read_file("cookies_spotify.txt"))
 lyrix.loadAccessToken()
 backend.linkLyrix(lyrix)
 

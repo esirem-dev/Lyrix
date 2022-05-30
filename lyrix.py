@@ -45,10 +45,16 @@ class Lyrix():
     def getCurrentlyPlaying(self):
         headers = self.getHeaders()
         response = requests.get(Lyrix.CURRENT_PLAYING_URL, headers=headers)
-        return json.loads(response.text)
-    
+        try:
+            return json.loads(response.text)
+        except:
+            return response.text
+        
     def getLyrics(self, idSong):
         url = f"{Lyrix.LYRICS_URL}{idSong}/"
         headers = self.getHeaders()
         req = requests.get(url, headers=headers)
-        return json.loads(req.text)
+        try:
+            return json.loads(req.text)
+        except:
+            return req.text
