@@ -7,9 +7,11 @@ ApplicationWindow {
     width: 600*2
     height: 400*2
     title: "LyriX"
+    visibility: isFullscreen ? "FullScreen" : "Windowed"
     id: main
 
     property QtObject backend
+    property bool isFullscreen: false
 
     Image {
         id: imgCover
@@ -114,4 +116,15 @@ ApplicationWindow {
     }
 
     FontLoader { id: spotifyFont; source: "CircularStd-Black.otf" }
+
+    Item {
+        anchors.fill: parent
+        focus: true
+        Keys.onPressed: {
+            if (event.key == Qt.Key_F11) {
+                isFullscreen = !isFullscreen;
+                event.accepted = true;
+            }
+        }
+    }
 }

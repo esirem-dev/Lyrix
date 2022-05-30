@@ -1,3 +1,4 @@
 - video youtube
 - détection pas de parole
 - détection pas internet
+- fullscreen
