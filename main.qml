@@ -48,12 +48,14 @@ ApplicationWindow {
         Rectangle {
             anchors.fill: parent
             color: "#34000000"
-            
+                
             ListView {
-                anchors.fill:parent
-
+                anchors.centerIn: parent
+                height: listview.contentHeight
+                width: parent.width
                 model: lyrics
-                id:listview
+                interactive: false
+                id: listview
 
                 delegate: Text {
                     text: textLyric
@@ -67,6 +69,7 @@ ApplicationWindow {
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
                     visible: !hidden
+                    height: hidden ? 0 : undefined
                 }
             }
         }
@@ -77,17 +80,14 @@ ApplicationWindow {
         
         function onClearLyrics() {
             lyrics.clear();
-            for (let i = 0; i < 50 ; i++) 
-                lyrics.set(i, {"textLyric": "", "selected": false, "hidden": true});
         }
 
         function onAddLyric(index, text){
-            index = index + 50;
+            index = index;
             lyrics.set(index, {"textLyric": text, "selected": false, "hidden": true});
         }
 
         function onSelectLine(index){
-            index = index + 50;
             for (let i = 0; i < lyrics.count ; i++) {
                 lyrics.setProperty(i, "selected", false)
                 if(i == index-1 || i == index+1)
@@ -97,7 +97,7 @@ ApplicationWindow {
             }
             lyrics.setProperty(index, "hidden", false)
             lyrics.setProperty(index, "selected", true)
-            listview.positionViewAtIndex(index, ListView.Center)
+            // listview.positionViewAtIndex(index, ListView.Center)
         }
         
         function onUpdateColor(background, text){
