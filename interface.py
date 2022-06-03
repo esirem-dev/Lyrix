@@ -14,7 +14,10 @@ from urllib.request import urlopen
 import io
 
 app = QGuiApplication(sys.argv)
-
+app.setOrganizationName("Nicow");
+app.setOrganizationDomain("nicow.eu");
+app.setApplicationName("LyriX");
+    
 engine = QQmlApplicationEngine()
 engine.quit.connect(app.quit)
 engine.load('main.qml')

@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtGraphicalEffects 1.12
+import Qt.labs.settings 1.0
 
 ApplicationWindow {
     visible: true
@@ -61,7 +62,7 @@ ApplicationWindow {
 
                 delegate: Text {
                     text: textLyric
-                    font.pixelSize: selected ? 60 : 40
+                    font.pixelSize: selected ? 60*settings.sizeFontMultiplier : 60*settings.sizeFontMultiplier*0.66
                     font.family: spotifyFont.name
                     font.letterSpacing: -1.5
                     color: selected ? "#ddffffff" : "#dd000000"
@@ -124,7 +125,22 @@ ApplicationWindow {
             if (event.key == Qt.Key_F11) {
                 isFullscreen = !isFullscreen;
                 event.accepted = true;
+            }else if(event.key == Qt.Key_O){
+                settings.sizeFontMultiplier = settings.sizeFontMultiplier - 0.1;
+            }else if(event.key == Qt.Key_P){
+                settings.sizeFontMultiplier = settings.sizeFontMultiplier + 0.1;
+            }else if(event.key == Qt.Key_Escape){
+                isFullscreen = false;
             }
         }
+    }
+
+    Settings {
+        id: settings
+        property double sizeFontMultiplier: 1;
+    }
+    
+    Component.onDestruction: {
+        settings.sync();
     }
 }
