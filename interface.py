@@ -36,13 +36,13 @@ class Backend(QObject):
 
     def __init__(self):
         super().__init__()
-        self.currentlyPlaying = {"item":{"id":""}}
+        self.currentlyPlaying = ""
         self.lastTimeRefresh = 0
         self.lyrics = {}
         self.lastIndexLine = -1
 
         self.timerSetup = QTimer()
-        self.timerSetup.setInterval(1000)
+        self.timerSetup.setInterval(5000)
         self.timerSetup.timeout.connect(self.threadCurrentlyPlaying)
         self.timerSetup.start()
         
@@ -58,7 +58,14 @@ class Backend(QObject):
         self.clearLyrics.emit()
         self.lyrics = self.lyrix.getLyrics(song["item"]["id"])
         
+        if(self.lyrics == ""):
+            self.lyrics = {'lyrics': {'lines': []}, 'colors': {'background': -0, 'text': -0, 'highlightText': -1}}
+            self.lyrics["lyrics"]["lines"].append({'startTimeMs': '0', 'words': "Oups...", 'syllables': []})
+            self.lyrics["lyrics"]["lines"].append({'startTimeMs': '1', 'words': "J'ai un trou de mémoire...", 'syllables': []})
+            self.lyrics["lyrics"]["lines"].append({'startTimeMs': str(60*1000*10), 'words': "Promis je vais essayer de retrouver pour la prochaine fois !", 'syllables': []})
+
         i = 0
+        
         for l in self.lyrics["lyrics"]["lines"]:
             self.addLyric.emit(i, l["words"])
             i += 1
@@ -76,24 +83,26 @@ class Backend(QObject):
         self.updateCover.emit(imgUrl)
             
     def threadCurrentlyPlaying(self):
-        currentlyPlaying = self.lyrix.getCurrentlyPlaying()
+        newCurrentlyPlaying = self.lyrix.getCurrentlyPlaying()
         
-        if(currentlyPlaying == ""):
-            print("Spotify non lancé")
+        if(newCurrentlyPlaying == ""):
+            self.clearLyrics.emit()
+            self.addLyric.emit(0, "Spotify n'est pas démarré")     
+            self.selectLine.emit(0)   
+            self.updateColor.emit("#000", "#fff")
+            self.updateCover.emit("")
             return
         
-        idSong = currentlyPlaying["item"]["id"]
-        
-        if(idSong != self.currentlyPlaying["item"]["id"]):
-            self.newSong(currentlyPlaying)
+        if(self.currentlyPlaying == "" or newCurrentlyPlaying["item"]["id"] != self.currentlyPlaying["item"]["id"]):
+            self.newSong(newCurrentlyPlaying)
             
-        self.currentlyPlaying = currentlyPlaying
+        self.currentlyPlaying = newCurrentlyPlaying
         self.lastTimeRefresh = time.time()
             
     def threadLineSelector(self):
-        if(not "progress_ms" in self.currentlyPlaying):
+        if(self.currentlyPlaying==""):
             return
-        
+            
         if(self.currentlyPlaying["is_playing"]):
             progress_ms = int(self.currentlyPlaying["progress_ms"]) - 700
             timing = int(progress_ms + (time.time()*1000 - self.lastTimeRefresh*1000))

@@ -86,7 +86,6 @@ ApplicationWindow {
         }
 
         function onAddLyric(index, text){
-            index = index;
             lyrics.set(index, {"textLyric": text, "selected": false, "hidden": true});
         }
 
