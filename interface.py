@@ -3,9 +3,10 @@ from turtle import back
 
 from PySide2.QtGui import QGuiApplication
 from PySide2.QtQml import QQmlApplicationEngine
-from PySide2.QtCore import QTimer, QObject, Signal
+from PySide2.QtCore import QTimer, QObject, Signal, QThread, SIGNAL, SLOT
 
 import time
+import threading
 
 from lyrix import Lyrix
 
@@ -40,17 +41,65 @@ class Backend(QObject):
         self.lastTimeRefresh = 0
         self.lyrics = {}
         self.lastIndexLine = -1
-
-        self.timerSetup = QTimer()
-        self.timerSetup.setInterval(5000)
-        self.timerSetup.timeout.connect(self.threadCurrentlyPlaying)
-        self.timerSetup.start()
         
+    def start(self):
+        self.updateColor.emit("#333", "#fff")
+        self.updateCover.emit("")
+        self.clearLyrics.emit()
+        self.addLyric.emit(0, "Démarrage...")
+        self.addLyric.emit(1, "LyriX By Nicow")
+        self.selectLine.emit(0)
+        
+        self.threadSetup = QThread()
+        self.threadPlaying = QThread()
+        
+        self.timerStart = QTimer()
+        self.timerStart.setInterval(1000)
+        self.timerStart.moveToThread(self.threadSetup)
+        self.timerStart.timeout.connect(self._start)
+        self.threadSetup.started.connect(self.timerStart.start)
+        
+        self.timerToken = QTimer()
+        self.timerToken.setInterval(3000)
+        self.timerToken.moveToThread(self.threadSetup)
+        self.timerToken.timeout.connect(self.loadToken)
+        self.threadSetup.started.connect(self.timerToken.start)
+        
+        self.threadSetup.start()
+        
+    def loadToken(self):
+        if(self.lyrix.token!=""):
+            return
+        
+        self.updateColor.emit("#333", "#fff")
+        self.updateCover.emit("")
+        if(not self.lyrix.loadAccessToken()):
+            self.clearLyrics.emit()
+            self.addLyric.emit(0, "Erreur")
+            self.addLyric.emit(1, "Impossible d'obtenir le token Spotify,\nvérifiez votre connexion internet")
+            self.addLyric.emit(2, "Nouvelle tentative dans 3 secondes...")
+            self.selectLine.emit(1)
+        else:
+            self.timerToken.stop()
+        
+    def _start(self):
+        if(self.lyrix.token==""):
+            return
+
+        self.timerStart.stop()
+
+        self.clearLyrics.emit()        
+        self.timerCurrentlyPlaying = QTimer()
+        self.timerCurrentlyPlaying.setInterval(5000)
+        self.timerCurrentlyPlaying.timeout.connect(self.threadCurrentlyPlaying)
+        self.threadPlaying.started.connect(self.timerCurrentlyPlaying.start)
+        self.threadPlaying.start()
+
         self.timerLineSelector = QTimer()
         self.timerLineSelector.setInterval(50)
         self.timerLineSelector.timeout.connect(self.threadLineSelector)
         self.timerLineSelector.start()
-        
+   
     def linkLyrix(self, link):
         self.lyrix = link
     
@@ -83,13 +132,15 @@ class Backend(QObject):
         self.updateCover.emit(imgUrl)
             
     def threadCurrentlyPlaying(self):
+        print("a")
         newCurrentlyPlaying = self.lyrix.getCurrentlyPlaying()
+        print("b")
         
         if(newCurrentlyPlaying == ""):
             self.clearLyrics.emit()
             self.addLyric.emit(0, "Spotify n'est pas démarré")     
             self.selectLine.emit(0)   
-            self.updateColor.emit("#000", "#fff")
+            self.updateColor.emit("#333", "#fff")
             self.updateCover.emit("")
             return
         
@@ -123,10 +174,10 @@ class Backend(QObject):
 backend = Backend()
 
 lyrix = Lyrix(cookies=read_file("cookies_spotify.txt"))
-lyrix.loadAccessToken()
 backend.linkLyrix(lyrix)
 
 engine.rootObjects()[0].setProperty('backend', backend)
 
+backend.start()
 # sys.exit(0)
 sys.exit(app.exec_())

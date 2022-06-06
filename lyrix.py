@@ -23,8 +23,12 @@ class Lyrix():
             "spotify-app-version": "1.1.87.0-unknown",
             'cookie': cookies if cookies != "" else self.cookies
         }
-        req = requests.get(Lyrix.TOKEN_URL, headers=h)
+        try:
+            req = requests.get(Lyrix.TOKEN_URL, headers=h)
+        except:
+            return False
         self.token = json.loads(req.text)["accessToken"]
+        return True
         
     def getHeaders(self):
         headers = {
