@@ -15,9 +15,9 @@ from urllib.request import urlopen
 import io
 
 app = QGuiApplication(sys.argv)
-app.setOrganizationName("Nicow");
-app.setOrganizationDomain("nicow.eu");
-app.setApplicationName("LyriX");
+app.setOrganizationName("Nicow")
+app.setOrganizationDomain("nicow.eu")
+app.setApplicationName("LyriX")
     
 engine = QQmlApplicationEngine()
 engine.quit.connect(app.quit)
@@ -27,8 +27,68 @@ def read_file(file_name):
     with open(file_name, 'rb') as f:
         return f.read()
 
-class Backend(QObject):
+class WorkerToken(QObject):
+    finished = Signal()
+    error = Signal()
 
+    def __init__(self, app):
+        super().__init__()
+        self.app = app
+
+    def run(self):
+        self.timerToken = QTimer()
+        self.timerToken.setInterval(3000)
+        self.timerToken.timeout.connect(self.loadToken)
+        self.timerToken.start()
+        self.loadToken()
+
+    def loadToken(self):
+        if(self.app.lyrix.token!=""):
+            return
+        if(not self.app.lyrix.loadAccessToken()):
+            self.error.emit()
+        else:
+            self.timerToken.stop()
+            self.finished.emit()
+
+class WorkerCurrentlyPlaying(QObject):
+    finished = Signal()
+    spotifyNotStarted = Signal()
+    newSong = Signal([dict, dict, str])
+
+    def __init__(self, app):
+        super().__init__()
+        self.app = app
+
+    def run(self):        
+        self.timerCurrentlyPlaying = QTimer()
+        self.timerCurrentlyPlaying.setInterval(5000)
+        self.timerCurrentlyPlaying.timeout.connect(self.exec)
+        self.timerCurrentlyPlaying.start()
+        self.exec()
+
+    def exec(self):
+        newCurrentlyPlaying = self.app.lyrix.getCurrentlyPlaying()
+        
+        if(newCurrentlyPlaying == ""):
+            self.spotifyNotStarted.emit()
+            return
+        
+        if(self.app.currentlyPlaying == "" or newCurrentlyPlaying["item"]["id"] != self.app.currentlyPlaying["item"]["id"]):
+            lyrics = self.app.lyrix.getLyrics(newCurrentlyPlaying["item"]["id"])
+            imgUrl = newCurrentlyPlaying["item"]["album"]["images"][0]["url"].replace("https", "http")
+            
+            fd = urlopen(imgUrl)
+            f = io.BytesIO(fd.read())
+            color_thief = ColorThief(f)
+            backgroundColor = '#%02x%02x%02x' % color_thief.get_color(quality=1)
+
+            self.newSong.emit(newCurrentlyPlaying, lyrics, backgroundColor)
+            
+        self.app.currentlyPlaying = newCurrentlyPlaying
+        self.app.lastTimeRefresh = time.time()
+
+class Backend(QObject):
     clearLyrics = Signal(None)
     addLyric = Signal([int, str])
     updateColor = Signal([str, str])
@@ -50,62 +110,56 @@ class Backend(QObject):
         self.addLyric.emit(1, "LyriX By Nicow")
         self.selectLine.emit(0)
         
-        self.threadSetup = QThread()
-        self.threadPlaying = QThread()
-        
-        self.timerStart = QTimer()
-        self.timerStart.setInterval(1000)
-        self.timerStart.moveToThread(self.threadSetup)
-        self.timerStart.timeout.connect(self._start)
-        self.threadSetup.started.connect(self.timerStart.start)
-        
-        self.timerToken = QTimer()
-        self.timerToken.setInterval(3000)
-        self.timerToken.moveToThread(self.threadSetup)
-        self.timerToken.timeout.connect(self.loadToken)
-        self.threadSetup.started.connect(self.timerToken.start)
-        
-        self.threadSetup.start()
-        
-    def loadToken(self):
-        if(self.lyrix.token!=""):
-            return
-        
-        self.updateColor.emit("#333", "#fff")
-        self.updateCover.emit("")
-        if(not self.lyrix.loadAccessToken()):
-            self.clearLyrics.emit()
-            self.addLyric.emit(0, "Erreur")
-            self.addLyric.emit(1, "Impossible d'obtenir le token Spotify,\nvérifiez votre connexion internet")
-            self.addLyric.emit(2, "Nouvelle tentative dans 3 secondes...")
-            self.selectLine.emit(1)
-        else:
-            self.timerToken.stop()
-        
-    def _start(self):
-        if(self.lyrix.token==""):
-            return
+        self.threadToken = QThread()
+        self.workerToken = WorkerToken(self)
+        self.workerToken.moveToThread(self.threadToken)
+        self.threadToken.started.connect(self.workerToken.run)
+        self.workerToken.finished.connect(self.tokenLoaded)
+        self.workerToken.error.connect(self.tokenError)
+        self.workerToken.finished.connect(self.threadToken.quit)
+        self.workerToken.finished.connect(self.workerToken.deleteLater)
+        self.threadToken.finished.connect(self.threadToken.deleteLater)
+        self.threadToken.start()
 
-        self.timerStart.stop()
+    def tokenLoaded(self):
+        self.clearLyrics.emit()
+        self.addLyric.emit(0, "Démarrage...")
+        self.addLyric.emit(1, "LyriX By Nicow")
+        self.selectLine.emit(0)
 
-        self.clearLyrics.emit()        
-        self.timerCurrentlyPlaying = QTimer()
-        self.timerCurrentlyPlaying.setInterval(5000)
-        self.timerCurrentlyPlaying.timeout.connect(self.threadCurrentlyPlaying)
-        self.threadPlaying.started.connect(self.timerCurrentlyPlaying.start)
-        self.threadPlaying.start()
+        self.threadCurrentlyPlaying = QThread()
+        self.workerCurrentlyPlaying = WorkerCurrentlyPlaying(self)
+        self.workerCurrentlyPlaying.moveToThread(self.threadCurrentlyPlaying)
+        self.threadCurrentlyPlaying.started.connect(self.workerCurrentlyPlaying.run)
+        self.workerCurrentlyPlaying.spotifyNotStarted.connect(self.spotifyNotStarted)
+        self.workerCurrentlyPlaying.newSong.connect(self.newSong)
+        self.threadCurrentlyPlaying.start()
 
         self.timerLineSelector = QTimer()
-        self.timerLineSelector.setInterval(50)
+        self.timerLineSelector.setInterval(100)
         self.timerLineSelector.timeout.connect(self.threadLineSelector)
         self.timerLineSelector.start()
+
+    def spotifyNotStarted(self):
+        self.clearLyrics.emit()
+        self.addLyric.emit(0, "Spotify n'est pas démarré")
+        self.selectLine.emit(0)
+        self.updateColor.emit("#333", "#fff")
+        self.updateCover.emit("")
+
+    def tokenError(self):
+        self.clearLyrics.emit()
+        self.addLyric.emit(0, "Erreur")
+        self.addLyric.emit(1, "Impossible d'obtenir le token Spotify,\nvérifiez votre connexion internet")
+        self.addLyric.emit(2, "Nouvelle tentative dans 3 secondes...")
+        self.selectLine.emit(1)       
    
     def linkLyrix(self, link):
         self.lyrix = link
     
-    def newSong(self, song):
+    def newSong(self, song, lyrics, backgroundColor="#333"):
         self.clearLyrics.emit()
-        self.lyrics = self.lyrix.getLyrics(song["item"]["id"])
+        self.lyrics = lyrics
         
         if(self.lyrics == ""):
             self.lyrics = {'lyrics': {'lines': []}, 'colors': {'background': -0, 'text': -0, 'highlightText': -1}}
@@ -114,41 +168,19 @@ class Backend(QObject):
             self.lyrics["lyrics"]["lines"].append({'startTimeMs': str(60*1000*10), 'words': "Promis je vais essayer de retrouver pour la prochaine fois !", 'syllables': []})
 
         i = 0
-        
         for l in self.lyrics["lyrics"]["lines"]:
             self.addLyric.emit(i, l["words"])
             i += 1
 
-        backgroundColor = "#" + str(hex(abs(self.lyrics["colors"]["background"]))).replace("0x", "")
+        # backgroundColor = "#" + str(hex(abs(self.lyrics["colors"]["background"]))).replace("0x", "")
         textColor = "#" + str(hex(abs(self.lyrics["colors"]["text"]))).replace("0x", "")
         imgUrl = song["item"]["album"]["images"][0]["url"].replace("https", "http")
-        
-        fd = urlopen(imgUrl)
-        f = io.BytesIO(fd.read())
-        color_thief = ColorThief(f)
-        backgroundColor = '#%02x%02x%02x' % color_thief.get_color(quality=1)        
         
         self.updateColor.emit(backgroundColor, textColor)
         self.updateCover.emit(imgUrl)
             
     def threadCurrentlyPlaying(self):
-        print("a")
-        newCurrentlyPlaying = self.lyrix.getCurrentlyPlaying()
-        print("b")
-        
-        if(newCurrentlyPlaying == ""):
-            self.clearLyrics.emit()
-            self.addLyric.emit(0, "Spotify n'est pas démarré")     
-            self.selectLine.emit(0)   
-            self.updateColor.emit("#333", "#fff")
-            self.updateCover.emit("")
-            return
-        
-        if(self.currentlyPlaying == "" or newCurrentlyPlaying["item"]["id"] != self.currentlyPlaying["item"]["id"]):
-            self.newSong(newCurrentlyPlaying)
-            
-        self.currentlyPlaying = newCurrentlyPlaying
-        self.lastTimeRefresh = time.time()
+        pass
             
     def threadLineSelector(self):
         if(self.currentlyPlaying==""):
