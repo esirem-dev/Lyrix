@@ -6,7 +6,6 @@ from PySide2.QtQml import QQmlApplicationEngine
 from PySide2.QtCore import QTimer, QObject, Signal, QThread, SIGNAL, SLOT
 
 import time
-import threading
 
 from lyrix import Lyrix
 

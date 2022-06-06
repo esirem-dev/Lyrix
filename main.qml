@@ -13,6 +13,7 @@ ApplicationWindow {
 
     property QtObject backend
     property bool isFullscreen: false
+    property string subtextColor: "#dd000000"
 
     Image {
         id: imgCover
@@ -65,7 +66,7 @@ ApplicationWindow {
                     font.pixelSize: selected ? 60*settings.sizeFontMultiplier : 60*settings.sizeFontMultiplier*0.66
                     font.family: spotifyFont.name
                     font.letterSpacing: -1.5
-                    color: selected ? "#ddffffff" : "#dd000000"
+                    color: selected ? "#ddffffff" : subtextColor
                     width: listview.width
                     padding: 13
                     verticalAlignment: Text.AlignVCenter
@@ -104,6 +105,13 @@ ApplicationWindow {
         
         function onUpdateColor(background, text){
             backgroundRectangle.color = background;
+            
+            let r = 255 - parseInt(background.substring(1,3), 16);
+            let g = 255 - parseInt(background.substring(3,5), 16);
+            let b = 255 - parseInt(background.substring(5,7), 16);
+            let negatifColor = "#aa" + r.toString(16) + g.toString(16) + b.toString(16);
+            console.log(background, negatifColor)
+            subtextColor = negatifColor;
         }
 
         function onUpdateCover(imgUrl){
