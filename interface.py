@@ -164,7 +164,7 @@ class Backend(QObject):
         if(self.lyrics == ""):
             self.lyrics = {'lyrics': {'lines': []}, 'colors': {'background': -0, 'text': -0, 'highlightText': -1}}
             self.lyrics["lyrics"]["lines"].append({'startTimeMs': '0', 'words': "Oups...", 'syllables': []})
-            self.lyrics["lyrics"]["lines"].append({'startTimeMs': '1', 'words': "J'ai un trou de mémoire...", 'syllables': []})
+            self.lyrics["lyrics"]["lines"].append({'startTimeMs': '5000', 'words': "J'ai un trou de mémoire...", 'syllables': []})
             self.lyrics["lyrics"]["lines"].append({'startTimeMs': str(60*1000*10), 'words': "Promis je vais essayer de retrouver pour la prochaine fois !", 'syllables': []})
 
         i = 0
