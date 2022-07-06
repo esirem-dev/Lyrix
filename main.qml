@@ -51,7 +51,7 @@ ApplicationWindow {
 
         Rectangle {
             anchors.fill: parent
-            color: "#34000000"
+            color: "#00000000"
                 
             ListView {
                 anchors.centerIn: parent
@@ -105,13 +105,14 @@ ApplicationWindow {
         
         function onUpdateColor(background, text){
             backgroundRectangle.color = background;
+            subtextColor = text;
             
-            let r = 255 - parseInt(background.substring(1,3), 16);
-            let g = 255 - parseInt(background.substring(3,5), 16);
-            let b = 255 - parseInt(background.substring(5,7), 16);
-            let negatifColor = "#aa" + r.toString(16) + g.toString(16) + b.toString(16);
-            console.log(background, negatifColor)
-            subtextColor = negatifColor;
+            // let r = 255 - parseInt(background.substring(1,3), 16);
+            // let g = 255 - parseInt(background.substring(3,5), 16);
+            // let b = 255 - parseInt(background.substring(5,7), 16);
+            // let negatifColor = "#aa" + r.toString(16) + g.toString(16) + b.toString(16);
+            // console.log(background, negatifColor)
+            // subtextColor = negatifColor;
         }
 
         function onUpdateCover(imgUrl){

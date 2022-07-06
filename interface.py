@@ -53,7 +53,7 @@ class WorkerToken(QObject):
 class WorkerCurrentlyPlaying(QObject):
     finished = Signal()
     spotifyNotStarted = Signal()
-    newSong = Signal([dict, dict, str])
+    newSong = Signal([dict, dict, str, str])
 
     def __init__(self, app):
         super().__init__()
@@ -75,14 +75,19 @@ class WorkerCurrentlyPlaying(QObject):
         
         if(self.app.currentlyPlaying == "" or newCurrentlyPlaying["item"]["id"] != self.app.currentlyPlaying["item"]["id"]):
             lyrics = self.app.lyrix.getLyrics(newCurrentlyPlaying["item"]["id"])
-            imgUrl = newCurrentlyPlaying["item"]["album"]["images"][0]["url"].replace("https", "http")
             
-            fd = urlopen(imgUrl)
-            f = io.BytesIO(fd.read())
-            color_thief = ColorThief(f)
-            backgroundColor = '#%02x%02x%02x' % color_thief.get_color(quality=1)
+            if(lyrics == ""):
+                imgUrl = newCurrentlyPlaying["item"]["album"]["images"][0]["url"].replace("https", "http")            
+                fd = urlopen(imgUrl)
+                f = io.BytesIO(fd.read())
+                color_thief = ColorThief(f)
+                backgroundColor = '#%02x%02x%02x' % color_thief.get_color(quality=1)
+                textColor = "#eeeeee"
+            else:
+                backgroundColor = "#" + format(lyrics["colors"]["background"] + (1 << 24), "x").rjust(6, "0")
+                textColor = "#" + format(lyrics["colors"]["text"] + (1 << 24), "x").rjust(6, "0")
 
-            self.newSong.emit(newCurrentlyPlaying, lyrics, backgroundColor)
+            self.newSong.emit(newCurrentlyPlaying, lyrics, backgroundColor, textColor)
             
         self.app.currentlyPlaying = newCurrentlyPlaying
         self.app.lastTimeRefresh = time.time()
@@ -156,7 +161,7 @@ class Backend(QObject):
     def linkLyrix(self, link):
         self.lyrix = link
     
-    def newSong(self, song, lyrics, backgroundColor="#333"):
+    def newSong(self, song, lyrics, backgroundColor="#333", textColor=""):
         self.clearLyrics.emit()
         self.lyrics = lyrics
         
@@ -172,7 +177,6 @@ class Backend(QObject):
             i += 1
 
         # backgroundColor = "#" + str(hex(abs(self.lyrics["colors"]["background"]))).replace("0x", "")
-        textColor = "#" + str(hex(abs(self.lyrics["colors"]["text"]))).replace("0x", "")
         imgUrl = song["item"]["album"]["images"][0]["url"].replace("https", "http")
         
         self.updateColor.emit(backgroundColor, textColor)
