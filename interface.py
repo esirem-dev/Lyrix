@@ -98,6 +98,7 @@ class Backend(QObject):
     updateColor = Signal([str, str])
     updateCover = Signal(str)
     selectLine = Signal(int)
+    setSyncType = Signal(str)
 
     def __init__(self):
         super().__init__()
@@ -113,6 +114,7 @@ class Backend(QObject):
         self.addLyric.emit(0, "Démarrage...")
         self.addLyric.emit(1, "LyriX By Nicow")
         self.selectLine.emit(0)
+        self.setSyncType.emit("LINE_SYNCED")
         
         self.threadToken = QThread()
         self.workerToken = WorkerToken(self)
@@ -150,6 +152,7 @@ class Backend(QObject):
         self.selectLine.emit(0)
         self.updateColor.emit("#333", "#fff")
         self.updateCover.emit("")
+        self.setSyncType.emit("LINE_SYNCED")
 
     def tokenError(self):
         self.clearLyrics.emit()
@@ -157,6 +160,7 @@ class Backend(QObject):
         self.addLyric.emit(1, "Impossible d'obtenir le token Spotify,\nvérifiez votre connexion internet")
         self.addLyric.emit(2, "Nouvelle tentative dans 3 secondes...")
         self.selectLine.emit(1)       
+        self.setSyncType.emit("LINE_SYNCED")
    
     def linkLyrix(self, link):
         self.lyrix = link
@@ -181,13 +185,29 @@ class Backend(QObject):
         
         self.updateColor.emit(backgroundColor, textColor)
         self.updateCover.emit(imgUrl)
+        if("syncType" in self.lyrics["lyrics"]):
+            self.setSyncType.emit(self.lyrics["lyrics"]["syncType"])
+        else:
+            self.setSyncType.emit("LINE_SYNCED")
             
     def threadCurrentlyPlaying(self):
         pass
             
     def threadLineSelector(self):
-        if(self.currentlyPlaying==""):
+        if(self.currentlyPlaying=="" or not "lyrics" in self.lyrics):
             return
+        
+        if("syncType" in self.lyrics["lyrics"]):
+            if(self.lyrics["lyrics"]["syncType"] == "UNSYNCED"):
+                if(self.currentlyPlaying["is_playing"]):
+                    percent = int(self.currentlyPlaying["progress_ms"] + (time.time()*1000 - self.lastTimeRefresh*1000)) * 100 / self.currentlyPlaying['item']['duration_ms']
+                else:
+                    percent = self.currentlyPlaying["progress_ms"] * 100 / self.currentlyPlaying['item']['duration_ms']
+                index = int(len(self.lyrics["lyrics"]["lines"]) * percent/100)
+                if(self.lastIndexLine != index):
+                    self.lastIndexLine = index
+                    self.selectLine.emit(index)
+                return 0
             
         if(self.currentlyPlaying["is_playing"]):
             progress_ms = int(self.currentlyPlaying["progress_ms"]) - 700
