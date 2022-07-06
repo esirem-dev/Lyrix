@@ -16,6 +16,7 @@ ApplicationWindow {
     property bool isSynced: true
     property int selectedPositionIndex: 0
     property string subtextColor: "#dd000000"
+    property string backgroundColor: "#fff"
 
     Image {
         id: imgCover
@@ -30,7 +31,7 @@ ApplicationWindow {
     Rectangle {
         id: backgroundRectangle
         anchors.fill: parent
-        color: "#fff"
+        color: settings.nightMode ? "#000000" : backgroundColor
 
         Rectangle {
             color: "transparent"
@@ -38,6 +39,7 @@ ApplicationWindow {
             width: 450
             anchors.centerIn: parent
             opacity: 0.5
+            visible: !(settings.nightMode == 2)
 
             GaussianBlur {
                 anchors.centerIn: parent
@@ -78,6 +80,9 @@ ApplicationWindow {
                             }
                     }
                     function color(){
+                        if(settings.nightMode == 2)
+                            return selected ? "#ddffffff" : "#ddaaaaaa"
+
                         if(isSynced)
                             return selected ? "#ddffffff" : subtextColor
                         else{
@@ -142,7 +147,7 @@ ApplicationWindow {
         }
         
         function onUpdateColor(background, text){
-            backgroundRectangle.color = background;
+            backgroundColor = background;
             subtextColor = text;
             
             // let r = 255 - parseInt(background.substring(1,3), 16);
@@ -185,13 +190,18 @@ ApplicationWindow {
                 settings.sizeFontMultiplier = settings.sizeFontMultiplier + 0.1;
             }else if(event.key == Qt.Key_Escape){
                 isFullscreen = false;
+            }else if(event.key == Qt.Key_N){
+                settings.nightMode++;
+                if(settings.nightMode > 2)
+                    settings.nightMode = 0;
             }
         }
     }
 
     Settings {
         id: settings
-        property double sizeFontMultiplier: 1;
+        property double sizeFontMultiplier: 1
+        property int nightMode: 0
     }
     
     Component.onDestruction: {
