@@ -175,6 +175,11 @@ class Backend(QObject):
             self.lyrics["lyrics"]["lines"].append({'startTimeMs': '5000', 'words': "J'ai un trou de mémoire...", 'syllables': []})
             self.lyrics["lyrics"]["lines"].append({'startTimeMs': str(60*1000*10), 'words': "Promis je vais essayer de retrouver pour la prochaine fois !", 'syllables': []})
 
+        if("syncType" in self.lyrics["lyrics"]):
+            self.setSyncType.emit(self.lyrics["lyrics"]["syncType"])
+        else:
+            self.setSyncType.emit("LINE_SYNCED")
+            
         i = 0
         for l in self.lyrics["lyrics"]["lines"]:
             self.addLyric.emit(i, l["words"])
@@ -185,10 +190,6 @@ class Backend(QObject):
         
         self.updateColor.emit(backgroundColor, textColor)
         self.updateCover.emit(imgUrl)
-        if("syncType" in self.lyrics["lyrics"]):
-            self.setSyncType.emit(self.lyrics["lyrics"]["syncType"])
-        else:
-            self.setSyncType.emit("LINE_SYNCED")
             
     def threadCurrentlyPlaying(self):
         pass
