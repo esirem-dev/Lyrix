@@ -99,6 +99,7 @@ class Backend(QObject):
     updateCover = Signal(str)
     selectLine = Signal(int)
     setSyncType = Signal(str)
+    setNoLyrics = Signal(bool)
 
     def __init__(self):
         super().__init__()
@@ -174,6 +175,9 @@ class Backend(QObject):
             self.lyrics["lyrics"]["lines"].append({'startTimeMs': '0', 'words': "Oups...", 'syllables': []})
             self.lyrics["lyrics"]["lines"].append({'startTimeMs': '5000', 'words': "J'ai un trou de mémoire...", 'syllables': []})
             self.lyrics["lyrics"]["lines"].append({'startTimeMs': str(60*1000*10), 'words': "Promis je vais essayer de retrouver pour la prochaine fois !", 'syllables': []})
+            self.setNoLyrics.emit(True)
+        else:
+            self.setNoLyrics.emit(False)
 
         if("syncType" in self.lyrics["lyrics"]):
             self.setSyncType.emit(self.lyrics["lyrics"]["syncType"])
