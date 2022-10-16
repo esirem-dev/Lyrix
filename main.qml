@@ -1,10 +1,11 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.14
+import QtQuick.Window 2.3
 import QtGraphicalEffects 1.12
 import Qt.labs.settings 1.0
 
-ApplicationWindow {
+Window {
     visible: true
     width: 600*2
     height: 400*2
@@ -19,6 +20,10 @@ ApplicationWindow {
     property int selectedPositionIndex: 0
     property string subtextColor: "#dd000000"
     property string backgroundColor: "#fff"
+
+    onIsFullscreenChanged: () => {
+        settings.fullscreen = isFullscreen
+    }
 
     Image {
         id: imgCover
@@ -334,6 +339,17 @@ ApplicationWindow {
         id: settings
         property double sizeFontMultiplier: 1
         property int nightMode: 0
+        property bool fullscreen: false
+        property int monitorIndex: 0
+
+        Component.onCompleted: {
+            isFullscreen = settings.fullscreen
+
+            let screen = Qt.application.screens[settings.monitorIndex]
+            main.screen = screen
+            main.x = screen.virtualX + (screen.width - main.width)/2
+            main.y = screen.virtualY + (screen.height - main.height)/2
+        }
     }
     
     Timer {
