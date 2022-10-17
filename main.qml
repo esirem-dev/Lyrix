@@ -17,6 +17,7 @@ Window {
     property bool isFullscreen: false
     property bool isSynced: true
     property bool noLyrics: false
+    property bool catMode: false
     property int selectedPositionIndex: 0
     property string subtextColor: "#dd000000"
     property string backgroundColor: "#fff"
@@ -74,14 +75,14 @@ Window {
                 spacing: 5
 
                 Rectangle {
-                    Layout.preferredHeight: noLyrics ? parent.height*0.5 : parent.height
+                    Layout.preferredHeight: catMode ? parent.height*0.5 : parent.height
                     Layout.preferredWidth: parent.width
                     color: "transparent"
 
                     ListView {
-                        anchors.centerIn: noLyrics ? undefined : parent
-                        anchors.bottom: noLyrics ? parent.bottom : undefined
-                        // anchors.top: noLyrics ? parent.top : undefined
+                        anchors.centerIn: catMode ? undefined : parent
+                        anchors.bottom: catMode ? parent.bottom : undefined
+                        // anchors.top: catMode ? parent.top : undefined
                         height: isSynced ? listview.contentHeight : parent.height*0.8
                         width: parent.width
                         model: lyrics
@@ -150,7 +151,7 @@ Window {
 
                 Rectangle {
                     color: "transparent"
-                    Layout.preferredHeight: noLyrics ? parent.height*0.5 : 0
+                    Layout.preferredHeight: catMode ? parent.height*0.5 : 0
                     Layout.preferredWidth: parent.width
 
                     AnimatedImage { 
@@ -336,6 +337,8 @@ Window {
                 settings.nightMode++;
                 if(settings.nightMode > 2)
                     settings.nightMode = 0;
+            }else if(event.key == Qt.Key_C){
+                catMode = !catMode;
             }
         }
     }
