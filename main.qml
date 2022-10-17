@@ -122,7 +122,7 @@ Window {
                                     // let blue = color & 0xFF
                                     // let _blue = blue + ((255-blue)/maxGap)*gap
                                     // let _color = "#" + ((_red << 16) | (_green << 8) | _blue).toString(16)
-                                    return subtextColor
+                                    return "#ddffffff"
                                 }
                             }
                             text: textLyric 
