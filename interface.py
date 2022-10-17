@@ -1,7 +1,7 @@
 import sys
 from turtle import back
 
-from PySide2.QtGui import QGuiApplication
+from PySide2.QtGui import QGuiApplication, QIcon
 from PySide2.QtQml import QQmlApplicationEngine
 from PySide2.QtCore import QTimer, QObject, Signal, QThread, SIGNAL, SLOT
 
@@ -17,6 +17,8 @@ app = QGuiApplication(sys.argv)
 app.setOrganizationName("Nicow")
 app.setOrganizationDomain("nicow.eu")
 app.setApplicationName("LyriX")
+# set the logo of the application
+app.setWindowIcon(QIcon("img/logo.ico"))
     
 engine = QQmlApplicationEngine()
 engine.quit.connect(app.quit)
@@ -234,6 +236,7 @@ class Backend(QObject):
 backend = Backend()
 
 lyrix = Lyrix(cookies=read_file("cookies_spotify.txt"))
+print(read_file("cookies_spotify.txt"))
 backend.linkLyrix(lyrix)
 
 engine.rootObjects()[0].setProperty('backend', backend)

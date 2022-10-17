@@ -22,6 +22,11 @@ Window {
     property string backgroundColor: "#fff"
 
     onIsFullscreenChanged: () => {
+        if(isFullscreen){
+            settings.lastXFullscreen = main.x
+            settings.lastYFullscreen = main.y
+        }
+
         settings.fullscreen = isFullscreen
     }
 
@@ -341,14 +346,20 @@ Window {
         property int nightMode: 0
         property bool fullscreen: false
         property int monitorIndex: 0
+        property int lastXFullscreen: 0
+        property int lastYFullscreen: 0
 
         Component.onCompleted: {
-            isFullscreen = settings.fullscreen
+            if(settings.fullscreen){
+                main.x = settings.lastXFullscreen
+                main.y = settings.lastYFullscreen
+                isFullscreen = true;
+            }
 
-            let screen = Qt.application.screens[settings.monitorIndex]
-            main.screen = screen
-            main.x = screen.virtualX + (screen.width - main.width)/2
-            main.y = screen.virtualY + (screen.height - main.height)/2
+            // let screen = Qt.application.screens[settings.monitorIndex]
+            // main.screen = screen
+            // main.x = screen.virtualX + (screen.width - main.width)/2
+            // main.y = screen.virtualY + (screen.height - main.height)/2
         }
     }
     
