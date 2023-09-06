@@ -1,3 +1,5 @@
 PySide2
 colorthief
 PyInstaller
+requests
+tk
