@@ -132,4 +132,4 @@ cookies.txt
 cookies_spotify.txt
 
 # cache
-cache/bpm.json
+cache/*
