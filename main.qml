@@ -158,10 +158,11 @@ Window {
                         id: animation; 
                         anchors.top: parent.top
                         anchors.horizontalCenter: parent.horizontalCenter
-                        source: "img/cat-dancing.gif"
+                        source: "img/cat-dancing_boomerang.gif"
 
                         height: parent.height*0.7*settings.sizeFontMultiplier
                         fillMode: Image.PreserveAspectFit
+                        speed: 1
                         // width: parent.width*0.5
                     }
                 }
