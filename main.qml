@@ -158,11 +158,11 @@ Window {
                         id: animation; 
                         anchors.top: parent.top
                         anchors.horizontalCenter: parent.horizontalCenter
-                        source: "img/cat-dancing_boomerang.gif"
+                        source: "img/cat-dancing2_boomerang.gif"
 
                         height: parent.height*0.7*settings.sizeFontMultiplier
                         fillMode: Image.PreserveAspectFit
-                        speed: 1
+                        speed: 1 // 120
                         // width: parent.width*0.5
                     }
                 }
@@ -312,6 +312,16 @@ Window {
 
         function onSetNoLyrics(mode){
             noLyrics = mode;
+        }
+        
+        function onUpdateBPM(bpm){
+            let coef;
+            if (bpm > 140){
+                coef = 1.13
+            }else{
+                coef = 1.07
+            }
+            animation.speed = bpm/159*coef;
         }
     }
 

@@ -151,6 +151,7 @@ class Backend(QObject):
     addLyric = Signal([int, str])
     updateColor = Signal([str, str])
     updateCover = Signal(str)
+    updateBPM = Signal(int)
     selectLine = Signal(int)
     setSyncType = Signal(str)
     setNoLyrics = Signal(bool)
@@ -165,6 +166,7 @@ class Backend(QObject):
     def start(self):
         self.updateColor.emit("#333", "#fff")
         self.updateCover.emit("")
+        self.updateBPM.emit(120)
         self.clearLyrics.emit()
         self.addLyric.emit(0, "Démarrage...")
         self.addLyric.emit(1, "LyriX By Nicow")
@@ -278,6 +280,10 @@ class Backend(QObject):
 
     def newBPM(self, bpm):
         print("new bpm", bpm)
+        if (bpm is not None) and (bpm > 0):
+            self.updateBPM.emit(bpm)
+        else:
+            self.updateBPM.emit(120)
 
     def threadLineSelector(self):
         if self.currentlyPlaying == "" or not "lyrics" in self.lyrics:
