@@ -84,17 +84,21 @@ class WorkerCurrentlyPlaying(QObject):
         self.app = app
 
     def run(self):
+        self.app.log("WorkerCurrentlyPlaying", "Démarrage...")
         self.timerCurrentlyPlaying = QTimer()
         self.timerCurrentlyPlaying.setInterval(5000)
         self.timerCurrentlyPlaying.timeout.connect(self.exec)
         self.timerCurrentlyPlaying.start()
         self.exec()
+        self.app.log("WorkerCurrentlyPlaying", "Démarré")
 
     def exec(self):
+        self.app.log("WorkerCurrentlyPlaying", "Exécution...")
         newCurrentlyPlaying = self.app.lyrix.getCurrentlyPlaying()
 
         if newCurrentlyPlaying == "":
             self.spotifyNotStarted.emit()
+            self.app.log("WorkerCurrentlyPlaying", "Spotify non démarré")
             return
 
         if (
@@ -121,9 +125,14 @@ class WorkerCurrentlyPlaying(QObject):
                     lyrics["colors"]["text"] + (1 << 24), "x"
                 ).rjust(6, "0")
 
+            self.app.log("WorkerCurrentlyPlaying", "Nouvelle chanson détectée")
             self.newSong.emit(newCurrentlyPlaying, lyrics, backgroundColor, textColor)
 
         self.app.currentlyPlaying = newCurrentlyPlaying
+        self.app.log(
+            "WorkerCurrentlyPlaying",
+            "currentlyPlaying : " + str(self.app.currentlyPlaying),
+        )
         self.app.lastTimeRefresh = time.time()
 
 
@@ -137,11 +146,13 @@ class WorkerBPM(QObject):
         self.bpm = BPM()
 
     def run(self):
+        self.app.log("WorkerBPM", "Démarrage...")
         self.timerCheckBPM = QTimer()
         self.timerCheckBPM.setInterval(1000)
         self.timerCheckBPM.timeout.connect(self.exec)
         self.timerCheckBPM.start()
         self.exec()
+        self.app.log("WorkerBPM", "Démarré")
 
     def exec(self):
         song = self.app.currentlyPlaying
@@ -157,6 +168,10 @@ class WorkerBPM(QObject):
                 artist = song["item"]["artists"][0]["name"]
                 title = song["item"]["name"]
                 new_bpm = self.bpm.get_bpm(artist, title)
+                self.app.log(
+                    "WorkerBPM",
+                    f"BPM pour {artist} - {title} : {new_bpm}",
+                )
                 self.newBPM.emit(new_bpm)
         except Exception as e:
             import traceback
@@ -181,7 +196,11 @@ class Backend(QObject):
         self.lyrics = {}
         self.lastIndexLine = -1
 
+    def log(self, module, msg):
+        print("[" + module + "] " + msg)
+
     def start(self):
+        self.log("Backend", "Démarrage...")
         self.updateColor.emit("#333", "#fff")
         self.updateCover.emit("")
         self.updateBPM.emit(120)
@@ -201,6 +220,7 @@ class Backend(QObject):
         self.workerToken.finished.connect(self.workerToken.deleteLater)
         self.threadToken.finished.connect(self.threadToken.deleteLater)
         self.threadToken.start()
+        self.log("Backend", "Démarré")
 
     def tokenLoaded(self):
         self.clearLyrics.emit()
@@ -251,6 +271,7 @@ class Backend(QObject):
         self.lyrix = link
 
     def newSong(self, song, lyrics, backgroundColor="#333", textColor=""):
+        self.log("newSong", "Nouvelle chanson détectée : " + str(song))
         self.clearLyrics.emit()
         self.lyrics = lyrics
 
@@ -346,6 +367,7 @@ class Backend(QObject):
             i += 1
 
         if self.lastIndexLine != i:
+            self.log("threadLineSelector", "Changement de ligne : " + str(i))
             self.selectLine.emit(i - 1)
             self.lastIndexLine = i
 
