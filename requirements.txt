@@ -1,5 +1,5 @@
 PySide2
 colorthief
-PyInstaller
+PyInstaller==5.13.2
 requests
 tk
