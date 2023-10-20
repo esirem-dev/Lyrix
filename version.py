@@ -1,0 +1,1 @@
+LYRIX_VERSION = "8.2"

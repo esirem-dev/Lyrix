@@ -9,6 +9,7 @@ import time
 
 from lyrix import Lyrix
 from utils.bpm import BPM
+import version
 
 from colorthief import ColorThief
 from urllib.request import urlopen
@@ -17,7 +18,7 @@ import io
 app = QGuiApplication(sys.argv)
 app.setOrganizationName("Nicow")
 app.setOrganizationDomain("nicow.eu")
-app.setApplicationName("LyriX")
+app.setApplicationName("Lyrix")
 # set the logo of the application
 app.setWindowIcon(QIcon("img/logo.ico"))
 
@@ -206,7 +207,7 @@ class Backend(QObject):
         self.updateBPM.emit(120)
         self.clearLyrics.emit()
         self.addLyric.emit(0, "Démarrage...")
-        self.addLyric.emit(1, "LyriX By Nicow")
+        self.addLyric.emit(1, f"Lyrix{version.LYRIX_VERSION} By Nicow")
         self.selectLine.emit(0)
         self.setSyncType.emit("LINE_SYNCED")
 
@@ -216,16 +217,13 @@ class Backend(QObject):
         self.threadToken.started.connect(self.workerToken.run)
         self.workerToken.finished.connect(self.tokenLoaded)
         self.workerToken.error.connect(self.tokenError)
-        self.workerToken.finished.connect(self.threadToken.quit)
-        self.workerToken.finished.connect(self.workerToken.deleteLater)
-        self.threadToken.finished.connect(self.threadToken.deleteLater)
         self.threadToken.start()
         self.log("Backend", "Démarré")
 
     def tokenLoaded(self):
         self.clearLyrics.emit()
         self.addLyric.emit(0, "Démarrage...")
-        self.addLyric.emit(1, "LyriX By Nicow")
+        self.addLyric.emit(1, f"Lyrix{version.LYRIX_VERSION} By Nicow")
         self.selectLine.emit(0)
 
         self.threadCurrentlyPlaying = QThread()
