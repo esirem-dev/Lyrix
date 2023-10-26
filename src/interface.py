@@ -7,7 +7,7 @@ from PySide2.QtCore import QTimer, QObject, Signal, QThread, SIGNAL, SLOT
 
 import time
 
-from lyrix import Lyrix
+from utils.spotify_controler import SpotifyControler
 from utils.bpm import BPM
 import version
 
@@ -56,9 +56,9 @@ class WorkerToken(QObject):
 
     def loadToken(self):
         self.app.log("WorkerToken", "Exécution...")
-        if self.app.lyrix.token != "":
+        if self.app.spotify.token != "":
             return
-        if not self.app.lyrix.loadAccessToken():
+        if not self.app.spotify.loadAccessToken():
             self.error.emit()
             self.app.log("WorkerToken", "Erreur lors du chargement du token")
         else:
@@ -69,7 +69,7 @@ class WorkerToken(QObject):
     def loadTokenForce(self):
         self.app.log("WorkerToken", "Exécution force...")
         try:
-            res = self.app.lyrix.loadAccessToken()
+            res = self.app.spotify.loadAccessToken()
             self.app.log("WorkerToken", "Token chargé : " + str(res))
         except:
             self.app.log("WorkerToken", "Erreur lors du chargement du token")
@@ -96,7 +96,7 @@ class WorkerCurrentlyPlaying(QObject):
 
     def exec(self):
         self.app.log("WorkerCurrentlyPlaying", "Exécution...")
-        newCurrentlyPlaying = self.app.lyrix.getCurrentlyPlaying()
+        newCurrentlyPlaying = self.app.spotify.getCurrentlyPlaying()
 
         if newCurrentlyPlaying == "":
             self.spotifyNotStarted.emit()
@@ -108,7 +108,7 @@ class WorkerCurrentlyPlaying(QObject):
             or newCurrentlyPlaying["item"]["id"]
             != self.app.currentlyPlaying["item"]["id"]
         ):
-            lyrics = self.app.lyrix.getLyrics(newCurrentlyPlaying["item"]["id"])
+            lyrics = self.app.spotify.getLyrics(newCurrentlyPlaying["item"]["id"])
 
             if lyrics == "":
                 imgUrl = newCurrentlyPlaying["item"]["album"]["images"][0][
@@ -277,8 +277,10 @@ class Backend(QObject):
         self.selectLine.emit(1)
         self.setSyncType.emit("LINE_SYNCED")
 
-    def linkLyrix(self, link):
-        self.lyrix = link
+    def linkSpotifyControler(self, link):
+        self.log("linkSpotifyControler", "Lien avec le controler Spotify")
+        self.spotify = link
+        self.log("linkSpotifyControler", "Lien effectué: " + str(self.spotify))
 
     def loadTheme(self):
         if self.theme == "":
@@ -400,8 +402,8 @@ class Backend(QObject):
 
 backend = Backend()
 
-lyrix = Lyrix(cookies=read_file("assets/config/cookies_spotify.txt"))
-backend.linkLyrix(lyrix)
+spotify = SpotifyControler(cookies=read_file("assets/config/cookies_spotify.txt"))
+backend.linkSpotifyControler(spotify)
 
 engine.rootObjects()[0].setProperty("backend", backend)
 
