@@ -31,12 +31,17 @@ Window {
         settings.fullscreen = isFullscreen
     }
 
+    function getIconePath(fileName){
+
+        return "assets/img/icones/"+fileName
+    }
+
     Image {
         id: imgCover
         height: 380
         width: 380
 
-        source: "./background.png"
+        source: ""
         smooth: true
         mipmap: true
     }
@@ -171,7 +176,7 @@ Window {
                         id: animation; 
                         anchors.top: parent.top
                         anchors.horizontalCenter: parent.horizontalCenter
-                        source: "img/cat-dancing2_boomerang.gif"
+                        source: "assets/img/cat-dancing2_boomerang.gif"
 
                         height: parent.height*0.7*settings.sizeFontMultiplier
                         fillMode: Image.PreserveAspectFit
@@ -211,7 +216,7 @@ Window {
                     width: 35; height: 35
                     mipmap: true;
                     anchors.centerIn: parent
-                    source: "img/"+fileName()
+                    source: fileName()
                 }
 
                 MouseArea {
@@ -242,10 +247,10 @@ Window {
         ListModel {
             id: menuModel
             ListElement {
-                fileName: () => { return "settings.png" }
+                fileName: () => { return getIconePath("settings.png") }
             }
             ListElement {
-                fileName: () => { return settings.nightMode==2 ? "daymode.png" : (settings.nightMode==1 ? "nightmode2.png" : "nightmode.png") }
+                fileName: () => { return settings.nightMode==2 ? getIconePath("daymode.png") : (settings.nightMode==1 ? getIconePath("nightmode2.png") : getIconePath("nightmode.png")) }
                 fnct: () => {
                     settings.nightMode++;
                     if(settings.nightMode > 2)
@@ -253,7 +258,7 @@ Window {
                 }
             }
             ListElement {
-                fileName: () => { return isFullscreen ?  "exit-fullscreen.png" : "fullscreen.png" }
+                fileName: () => { return isFullscreen ?  getIconePath("exit-fullscreen.png") : getIconePath("fullscreen.png") }
                 fnct: () => {
                     isFullscreen = !isFullscreen;
                 }
@@ -346,7 +351,7 @@ Window {
         id: lyrics
     }
 
-    FontLoader { id: spotifyFont; source: "CircularStd-Black.otf" }
+    FontLoader { id: spotifyFont; source: "assets/fonts/CircularStd-Black.otf" }
 
     Item {
         anchors.fill: parent

@@ -1,4 +1,4 @@
 # lyrix
 
-assets/cookies_spotify.txt
-assets/cache/*
+assets/config/cookies_spotify.txt
+cache/*

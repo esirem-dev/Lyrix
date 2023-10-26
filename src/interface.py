@@ -21,7 +21,7 @@ app.setOrganizationName("Nicow")
 app.setOrganizationDomain("nicow.eu")
 app.setApplicationName("Lyrix")
 # set the logo of the application
-app.setWindowIcon(QIcon("img/logo.ico"))
+app.setWindowIcon(QIcon("img/logo/logo.ico"))
 
 engine = QQmlApplicationEngine()
 engine.quit.connect(app.quit)
@@ -199,7 +199,7 @@ class Backend(QObject):
         self.lyrics = {}
         self.lastIndexLine = -1
 
-        self.theme = "halloween"
+        self.theme = ""
         self.theme_settings = {}
 
     def log(self, module, msg):
@@ -281,8 +281,10 @@ class Backend(QObject):
         self.lyrix = link
 
     def loadTheme(self):
+        if self.theme == "":
+            return
         self.log("loadTheme", "Chargement du thème : " + self.theme)
-        file = open("themes/" + self.theme + ".json", "r")
+        file = open("assets/themes/" + self.theme + ".json", "r")
         self.theme_settings = json.loads(file.read())
         self.log("loadTheme", "Thème chargé : " + str(self.theme_settings))
 
@@ -398,7 +400,7 @@ class Backend(QObject):
 
 backend = Backend()
 
-lyrix = Lyrix(cookies=read_file("cookies_spotify.txt"))
+lyrix = Lyrix(cookies=read_file("assets/config/cookies_spotify.txt"))
 backend.linkLyrix(lyrix)
 
 engine.rootObjects()[0].setProperty("backend", backend)
