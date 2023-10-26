@@ -1,9 +1,9 @@
 import sys
 from turtle import back
 
-from PySide2.QtGui import QGuiApplication, QIcon
-from PySide2.QtQml import QQmlApplicationEngine
-from PySide2.QtCore import QTimer, QObject, Signal, QThread, SIGNAL, SLOT
+from PySide6.QtGui import QGuiApplication, QIcon
+from PySide6.QtQml import QQmlApplicationEngine
+from PySide6.QtCore import QTimer, QObject, Signal, QThread, SIGNAL, SLOT
 
 import time
 
@@ -79,7 +79,7 @@ class WorkerToken(QObject):
 class WorkerCurrentlyPlaying(QObject):
     finished = Signal()
     spotifyNotStarted = Signal()
-    newSong = Signal([dict, dict, str, str])
+    newSong = Signal(dict, dict, str, str)
 
     def __init__(self, app):
         super().__init__()
@@ -139,7 +139,7 @@ class WorkerCurrentlyPlaying(QObject):
 
 
 class WorkerBPM(QObject):
-    newBPM = Signal([int])
+    newBPM = Signal(int)
 
     def __init__(self, app):
         super().__init__()
@@ -183,8 +183,8 @@ class WorkerBPM(QObject):
 
 class Backend(QObject):
     clearLyrics = Signal(None)
-    addLyric = Signal([int, str])
-    updateColor = Signal([str, str])
+    addLyric = Signal(int, str)
+    updateColor = Signal(str, str)
     updateCover = Signal(str)
     updateBPM = Signal(int)
     updateBackground = Signal(str)
@@ -203,6 +203,7 @@ class Backend(QObject):
         self.theme_settings = {}
 
     def log(self, module, msg):
+        return
         print("[" + module + "] " + msg)
 
     def start(self):
@@ -409,4 +410,4 @@ engine.rootObjects()[0].setProperty("backend", backend)
 
 backend.start()
 # sys.exit(0)
-sys.exit(app.exec_())
+sys.exit(app.exec())

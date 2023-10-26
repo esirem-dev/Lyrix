@@ -1,9 +1,9 @@
-import QtQuick 2.15
-import QtQuick.Controls 2.15
-import QtQuick.Layouts 1.14
-import QtQuick.Window 2.3
-import QtGraphicalEffects 1.12
-import Qt.labs.settings 1.0
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import QtQuick.Window
+import Qt5Compat.GraphicalEffects
+import QtCore
 
 Window {
     visible: true
@@ -121,7 +121,7 @@ Window {
                                         return size
                                     }
                             }
-                            function color(){
+                            function _color(){
                                 if(settings.nightMode == 2)
                                     return selected ? "#ddffffff" : "#ddaaaaaa"
 
@@ -147,7 +147,7 @@ Window {
                             font.pixelSize: pixelSize()
                             font.family: spotifyFont.name
                             font.letterSpacing: -1.5
-                            color: color()
+                            color: _color()
                             width: listview.width
                             padding: isSynced ? 13 : 2
                             verticalAlignment: Text.AlignVCenter
