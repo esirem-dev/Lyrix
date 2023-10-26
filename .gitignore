@@ -121,8 +121,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
-src/assets/cookies_spotify.txt
-
-# cache
-cache/*
