@@ -68,6 +68,19 @@ Window {
 
         Rectangle {
             anchors.fill: parent
+            color:"transparent"
+
+            Image {
+                id: backgroundImage
+                anchors.fill: parent
+                source: ""
+                mipmap: true
+                visible: !(settings.nightMode == 2)
+            }
+        }
+
+        Rectangle {
+            anchors.fill: parent
             color: "#00000000"
                 
             ColumnLayout {
@@ -300,6 +313,10 @@ Window {
 
         function onUpdateCover(imgUrl){
             imgCover.source = imgUrl;
+        }
+
+        function onUpdateBackground(path){
+            backgroundImage.source = path;
         }
 
         function onSetSyncType(type){

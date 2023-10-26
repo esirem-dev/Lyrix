@@ -10,6 +10,7 @@ a = Analysis(
     binaries=[],
     datas=[
         ("img/*", "img"),
+        ("themes/*", "themes"),
         ("background.png", "."),
         ("CircularStd-Black.otf", "."),
         ("CircularStd-Bold.otf", "."),

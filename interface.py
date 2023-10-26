@@ -14,6 +14,7 @@ import version
 from colorthief import ColorThief
 from urllib.request import urlopen
 import io
+import json
 
 app = QGuiApplication(sys.argv)
 app.setOrganizationName("Nicow")
@@ -186,6 +187,7 @@ class Backend(QObject):
     updateColor = Signal([str, str])
     updateCover = Signal(str)
     updateBPM = Signal(int)
+    updateBackground = Signal(str)
     selectLine = Signal(int)
     setSyncType = Signal(str)
     setNoLyrics = Signal(bool)
@@ -196,6 +198,9 @@ class Backend(QObject):
         self.lastTimeRefresh = 0
         self.lyrics = {}
         self.lastIndexLine = -1
+
+        self.theme = "halloween"
+        self.theme_settings = {}
 
     def log(self, module, msg):
         print("[" + module + "] " + msg)
@@ -218,6 +223,8 @@ class Backend(QObject):
         self.workerToken.finished.connect(self.tokenLoaded)
         self.workerToken.error.connect(self.tokenError)
         self.threadToken.start()
+
+        self.loadTheme()
         self.log("Backend", "Démarré")
 
     def tokenLoaded(self):
@@ -250,7 +257,12 @@ class Backend(QObject):
         self.clearLyrics.emit()
         self.addLyric.emit(0, "Spotify n'est pas démarré")
         self.selectLine.emit(0)
-        self.updateColor.emit("#333", "#fff")
+        if self.theme != "":
+            self.updateColor.emit(
+                self.theme_settings["backgroundColor"], self.theme_settings["textColor"]
+            )
+        else:
+            self.updateColor.emit("#333", "#fff")
         self.updateCover.emit("")
         self.setSyncType.emit("LINE_SYNCED")
 
@@ -267,6 +279,15 @@ class Backend(QObject):
 
     def linkLyrix(self, link):
         self.lyrix = link
+
+    def loadTheme(self):
+        self.log("loadTheme", "Chargement du thème : " + self.theme)
+        file = open("themes/" + self.theme + ".json", "r")
+        self.theme_settings = json.loads(file.read())
+        self.log("loadTheme", "Thème chargé : " + str(self.theme_settings))
+
+        if "backgroundImage" in self.theme_settings:
+            self.updateBackground.emit(self.theme_settings["backgroundImage"])
 
     def newSong(self, song, lyrics, backgroundColor="#333", textColor=""):
         self.log("newSong", "Nouvelle chanson détectée : " + str(song))
@@ -312,7 +333,12 @@ class Backend(QObject):
         # backgroundColor = "#" + str(hex(abs(self.lyrics["colors"]["background"]))).replace("0x", "")
         imgUrl = song["item"]["album"]["images"][0]["url"].replace("https", "http")
 
-        self.updateColor.emit(backgroundColor, textColor)
+        if self.theme != "":
+            self.updateColor.emit(
+                self.theme_settings["backgroundColor"], self.theme_settings["textColor"]
+            )
+        else:
+            self.updateColor.emit(backgroundColor, textColor)
         self.updateCover.emit(imgUrl)
 
     def newBPM(self, bpm):
