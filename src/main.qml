@@ -103,7 +103,7 @@ Window {
                         // anchors.top: catMode ? parent.top : undefined
                         height: isSynced ? listview.contentHeight : parent.height*0.8
                         width: parent.width
-                        model: lyrics
+                        model: isSynced ? displayedLyrics : lyrics
                         interactive: !isSynced
                         id: listview
 
@@ -153,8 +153,6 @@ Window {
                             verticalAlignment: Text.AlignVCenter
                             horizontalAlignment: Text.AlignHCenter
                             wrapMode: Text.WordWrap
-                            visible: !isSynced || !hidden
-                            height: (hidden && isSynced) ? 0 : undefined
 
                             Behavior on font.pixelSize {
                                 NumberAnimation {
@@ -281,10 +279,12 @@ Window {
         
         function onClearLyrics() {
             lyrics.clear();
+            updateDisplayedLyrics()
         }
 
         function onAddLyric(index, text){
             lyrics.set(index, {"textLyric": text, "selected": false, "hidden": index>1});
+            updateDisplayedLyrics()
         }
 
         function onSelectLine(index){
@@ -302,6 +302,7 @@ Window {
                 listview.positionViewAtIndex(index, ListView.Center)
                 selectedPositionIndex = index
             }
+            updateDisplayedLyrics()
         }
         
         function onUpdateColor(background, text){
@@ -345,10 +346,22 @@ Window {
             }
             animation.speed = bpm/159*coef;
         }
+
+        function updateDisplayedLyrics(){
+            displayedLyrics.clear()
+            for (let i = 0; i < lyrics.count ; i++) {
+                if(!lyrics.get(i).hidden)
+                    displayedLyrics.append(lyrics.get(i))
+            }
+        }
     }
 
     ListModel {
         id: lyrics
+    }
+
+    ListModel {
+        id: displayedLyrics
     }
 
     FontLoader { id: spotifyFont; source: "assets/fonts/CircularStd-Black.otf" }

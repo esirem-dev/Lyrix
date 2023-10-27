@@ -299,7 +299,7 @@ class Backend(QObject):
         self.clearLyrics.emit()
         self.lyrics = lyrics
 
-        if self.lyrics == "":
+        if self.lyrics == "" or self.lyrics == {}:
             self.lyrics = {
                 "lyrics": {"lines": []},
                 "colors": {"background": -0, "text": -0, "highlightText": -1},
