@@ -369,8 +369,8 @@ Window {
     Item {
         anchors.fill: parent
         focus: true
-        Keys.onPressed: {
-            if (event.key == Qt.Key_F11) {
+        Keys.onPressed: (event) => {
+            if (event.key == Qt.Key_F11 || event.key == Qt.Key_F) {
                 isFullscreen = !isFullscreen;
                 event.accepted = true;
             }else if(event.key == Qt.Key_O){

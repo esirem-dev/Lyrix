@@ -3,18 +3,17 @@ from turtle import back
 
 from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
-from PySide6.QtCore import QTimer, QObject, Signal, QThread, SIGNAL, SLOT
+from PySide6.QtCore import QTimer, QObject, Signal, QThread
 
-import time
+from workers import WorkerToken, WorkerCurrentlyPlaying, WorkerBPM
 
 from utils.spotify_controler import SpotifyControler
-from utils.bpm import BPM
+from utils.files import read_file
 import version
 
-from colorthief import ColorThief
 from urllib.request import urlopen
-import io
 import json
+import time
 
 app = QGuiApplication(sys.argv)
 app.setOrganizationName("Nicow")
@@ -26,159 +25,6 @@ app.setWindowIcon(QIcon("assets/img/logo/logo.ico"))
 engine = QQmlApplicationEngine()
 engine.quit.connect(app.quit)
 engine.load("main.qml")
-
-
-def read_file(file_name):
-    with open(file_name, "rb") as f:
-        return f.read()
-
-
-class WorkerToken(QObject):
-    finished = Signal()
-    error = Signal()
-
-    def __init__(self, app):
-        super().__init__()
-        self.app = app
-
-    def run(self):
-        self.app.log("WorkerToken", "Démarrage...")
-        self.timerToken = QTimer()
-        self.timerToken.setInterval(3000)
-        self.timerToken.timeout.connect(self.loadToken)
-        self.timerToken.start()
-        self.timerTokenForceRefresh = QTimer()
-        self.timerTokenForceRefresh.setInterval(1000 * 60 * 10)
-        self.timerTokenForceRefresh.timeout.connect(self.loadTokenForce)
-        self.timerTokenForceRefresh.start()
-        self.loadToken()
-        self.app.log("WorkerToken", "Démarré")
-
-    def loadToken(self):
-        self.app.log("WorkerToken", "Exécution...")
-        if self.app.spotify.token != "":
-            return
-        if not self.app.spotify.loadAccessToken():
-            self.error.emit()
-            self.app.log("WorkerToken", "Erreur lors du chargement du token")
-        else:
-            self.app.log("WorkerToken", "Token chargé")
-            self.timerToken.stop()
-            self.finished.emit()
-
-    def loadTokenForce(self):
-        self.app.log("WorkerToken", "Exécution force...")
-        try:
-            res = self.app.spotify.loadAccessToken()
-            self.app.log("WorkerToken", "Token chargé : " + str(res))
-        except:
-            self.app.log("WorkerToken", "Erreur lors du chargement du token")
-            pass
-
-
-class WorkerCurrentlyPlaying(QObject):
-    finished = Signal()
-    spotifyNotStarted = Signal()
-    newSong = Signal(dict, dict, str, str)
-
-    def __init__(self, app):
-        super().__init__()
-        self.app = app
-
-    def run(self):
-        self.app.log("WorkerCurrentlyPlaying", "Démarrage...")
-        self.timerCurrentlyPlaying = QTimer()
-        self.timerCurrentlyPlaying.setInterval(5000)
-        self.timerCurrentlyPlaying.timeout.connect(self.exec)
-        self.timerCurrentlyPlaying.start()
-        self.exec()
-        self.app.log("WorkerCurrentlyPlaying", "Démarré")
-
-    def exec(self):
-        self.app.log("WorkerCurrentlyPlaying", "Exécution...")
-        newCurrentlyPlaying = self.app.spotify.getCurrentlyPlaying()
-
-        if newCurrentlyPlaying == "":
-            self.spotifyNotStarted.emit()
-            self.app.log("WorkerCurrentlyPlaying", "Spotify non démarré")
-            return
-
-        if (
-            self.app.currentlyPlaying == ""
-            or newCurrentlyPlaying["item"]["id"]
-            != self.app.currentlyPlaying["item"]["id"]
-        ):
-            lyrics = self.app.spotify.getLyrics(newCurrentlyPlaying["item"]["id"])
-
-            if lyrics == "":
-                imgUrl = newCurrentlyPlaying["item"]["album"]["images"][0][
-                    "url"
-                ].replace("https", "http")
-                fd = urlopen(imgUrl)
-                f = io.BytesIO(fd.read())
-                color_thief = ColorThief(f)
-                backgroundColor = "#%02x%02x%02x" % color_thief.get_color(quality=1)
-                textColor = "#eeeeee"
-            else:
-                backgroundColor = "#" + format(
-                    lyrics["colors"]["background"] + (1 << 24), "x"
-                ).rjust(6, "0")
-                textColor = "#" + format(
-                    lyrics["colors"]["text"] + (1 << 24), "x"
-                ).rjust(6, "0")
-
-            self.app.log("WorkerCurrentlyPlaying", "Nouvelle chanson détectée")
-            self.newSong.emit(newCurrentlyPlaying, lyrics, backgroundColor, textColor)
-
-        self.app.currentlyPlaying = newCurrentlyPlaying
-        self.app.log(
-            "WorkerCurrentlyPlaying",
-            "currentlyPlaying : " + str(self.app.currentlyPlaying),
-        )
-        self.app.lastTimeRefresh = time.time()
-
-
-class WorkerBPM(QObject):
-    newBPM = Signal(int)
-
-    def __init__(self, app):
-        super().__init__()
-        self.app = app
-        self.last_song = None
-        self.bpm = BPM()
-
-    def run(self):
-        self.app.log("WorkerBPM", "Démarrage...")
-        self.timerCheckBPM = QTimer()
-        self.timerCheckBPM.setInterval(1000)
-        self.timerCheckBPM.timeout.connect(self.exec)
-        self.timerCheckBPM.start()
-        self.exec()
-        self.app.log("WorkerBPM", "Démarré")
-
-    def exec(self):
-        song = self.app.currentlyPlaying
-        if song == "" or song is None:
-            return
-
-        try:
-            if (
-                self.last_song is None
-                or song["item"]["id"] != self.last_song["item"]["id"]
-            ):
-                self.last_song = song
-                artist = song["item"]["artists"][0]["name"]
-                title = song["item"]["name"]
-                new_bpm = self.bpm.get_bpm(artist, title)
-                self.app.log(
-                    "WorkerBPM",
-                    f"BPM pour {artist} - {title} : {new_bpm}",
-                )
-                self.newBPM.emit(new_bpm)
-        except Exception as e:
-            import traceback
-
-            traceback.print_exc()
 
 
 class Backend(QObject):
