@@ -21,7 +21,7 @@ app.setOrganizationName("Nicow")
 app.setOrganizationDomain("nicow.eu")
 app.setApplicationName("Lyrix")
 # set the logo of the application
-app.setWindowIcon(QIcon("img/logo/logo.ico"))
+app.setWindowIcon(QIcon("assets/img/logo/logo.ico"))
 
 engine = QQmlApplicationEngine()
 engine.quit.connect(app.quit)
@@ -409,5 +409,4 @@ backend.linkSpotifyControler(spotify)
 engine.rootObjects()[0].setProperty("backend", backend)
 
 backend.start()
-# sys.exit(0)
 sys.exit(app.exec())
