@@ -398,7 +398,7 @@ Window {
         property int lastXFullscreen: 0
         property int lastYFullscreen: 0
 
-        Component.onCompleted: {
+        Component.onCompleted: () => {
             if(settings.fullscreen){
                 main.x = settings.lastXFullscreen
                 main.y = settings.lastYFullscreen

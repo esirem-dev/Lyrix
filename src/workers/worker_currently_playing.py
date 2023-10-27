@@ -1,5 +1,10 @@
 from PySide6.QtCore import QTimer, QObject, Signal
 
+from urllib.request import urlopen
+import io
+import time
+from colorthief import ColorThief
+
 
 class WorkerCurrentlyPlaying(QObject):
     finished = Signal()

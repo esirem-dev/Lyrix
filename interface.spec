@@ -1,21 +1,21 @@
 # -*- mode: python ; coding: utf-8 -*-
-import version
+import src.version as version
 
 block_cipher = None
 
 
 a = Analysis(
-    ["interface.py"],
+    ["src/main.py"],
     pathex=[],
     binaries=[],
     datas=[
-        ("assets/img/*", "img"),
-        ("assets/img/background/*", "assets/img/background"),
-        ("assets/themes/*", "assets/themes"),
-        ("assets/fonts/CircularStd-Black.otf", "."),
-        ("assets/fonts/CircularStd-Bold.otf", "."),
-        ("assets/config/cookies_spotify.txt", "."),
-        ("main.qml", "."),
+        # ("src/assets/img/*", "assets/img"),
+        # ("src/assets/img/background/*", "assets/img/background"),
+        # ("src/assets/themes/*", "assets/themes"),
+        # ("src/assets/fonts/*", "assets/fonts"),
+        # ("src/assets/config/cookies_spotify.txt", "assets/config"),
+        ("src/assets/", "assets"),
+        ("src/main.qml", "."),
     ],
     hiddenimports=[],
     hookspath=[],
@@ -35,17 +35,17 @@ exe = EXE(
     [],
     exclude_binaries=True,
     name="Lyrix",
-    debug=False,
+    debug=True,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=False,
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon="img/logo.ico",
+    icon="src/assets/img/logo/logo.ico",
 )
 coll = COLLECT(
     exe,

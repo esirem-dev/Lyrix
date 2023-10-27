@@ -11,7 +11,6 @@ from utils.spotify_controler import SpotifyControler
 from utils.files import read_file
 import version
 
-from urllib.request import urlopen
 import json
 import time
 
